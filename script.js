@@ -1,77 +1,66 @@
-
-document.addEventListener('DOMContentLoade', function() {
-    fetc('/api/invoice')
-        .then(resp => resp.jsoon())
-        .then(data => {
-            let html = '<ul>';
-            data.items.forEach(item => {
-                html += `<li>${item.name} - $${item.prce}</li>`;
-            });
-            html += '</ul>';
-            document.getElementById('invoice-container').innerHTML = html;
-        })
-        .catch(er => console.eror("Failed to load invoice:", er));
-});
-
 let items = [];
 
 function addItem() {
     const name = document.getElementById("itemName").value;
-    const qty = Number(document.getElementById("itemQty").value);
     const price = Number(document.getElementById("itemPrice").value);
+    const itemId = Number(document.getElementById('itemId').value);
 
-    if (!name) {
-        alert("Name could not be empty")
-        return;
-    }
-    if (!qty || qty <= 0) {
-        alert("Quantity cannot be negative or zero")
-        return;
-    }
-    
-    if ( price <= 0) {
-        alert("Price couldn't be negative or zero");
+    if (!name || price <= 0) {
+        alert("Enter valid item name and price.");
         return;
     }
 
-    items.push({ name, qty, price });
+    items.push({
+        ItemID: itemId,
+        Name: name,
+        Price: price
+    });
 
-    updateInvoiceWithItemNames();
-    
+    updatePreview();
+
     document.getElementById("itemName").value = "";
-    document.getElementById("itemQty").value = "";
     document.getElementById("itemPrice").value = "";
 }
 
-function updateInvoiceWithItemNames() {
+function updatePreview() {
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = "";
 
-    let grandTotal = 0;
+    let total = 0;
 
     items.forEach(item => {
         const row = document.createElement("tr");
 
-        const itemTotal = item.qty * item.price;
-        grandTotal += itemTotal;
-
         row.innerHTML = `
-            <td>${item.name}</td>
-            <td>${item.qty}</td>
-            <td>${item.price}</td>
-            <td>${itemTotal}</td>
+            <td>${item.ItemID}</td>
+            <td>${item.Name}</td>
+            <td>${item.Price.toFixed(2)}</td>
         `;
 
+        total += item.Price;
         tbody.appendChild(row);
     });
 
-    document.getElementById("grandTotal").innerText = grandTotal;
+    document.getElementById("grandTotal").innerText = total.toFixed(2);
 }
 
 function generateInvoice() {
+    const invoiceID = document.getElementById("invoiceID").value;
     const customer = document.getElementById("customerName").value;
-    const date = document.getElementById("invoiceDate").value;
+
+    if (!invoiceID || !customer) {
+        alert("Enter Invoice ID and Customer Name");
+        return;
+    }
+
+    document.getElementById("prevID").innerText = invoiceID;
     document.getElementById("prevCustomer").innerText = customer;
-    document.getElementById("prevDate").innerText = date;
-    updateInvoiceWithItemNames();
+
+    updatePreview();
+
+    console.log("Invoice to save:", {
+        InvoiceID: invoiceID,
+        CustomerName: customer,
+        Items: items
+    });
 }
